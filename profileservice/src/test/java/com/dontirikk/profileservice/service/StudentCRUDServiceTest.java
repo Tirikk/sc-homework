@@ -12,6 +12,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Supplier;
 
 import static com.dontirikk.profileservice.TestUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -19,6 +21,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class StudentCRUDServiceTest {
+
+    @Mock
+    private Supplier<UUID> uuidSupplier;
 
     @Mock
     private StudentRepository studentRepository;
@@ -47,6 +52,7 @@ class StudentCRUDServiceTest {
         var studentCreationRequest = new StudentCreationRequest(STUDENT_NAME, STUDENT_EMAIL);
         var createdStudent = new Student(STUDENT_ID, STUDENT_NAME, STUDENT_EMAIL);
 
+        when(uuidSupplier.get()).thenReturn(STUDENT_ID);
         when(studentRepository.save(createdStudent)).thenReturn(createdStudent);
 
         var savedStudent = studentCRUDService.createStudent(studentCreationRequest);
@@ -66,7 +72,7 @@ class StudentCRUDServiceTest {
         when(studentRepository.findById(STUDENT_ID)).thenReturn(Optional.of(existingStudent));
         when(studentRepository.save(updatedStudent)).thenReturn(updatedStudent);
 
-        var actualUpdatedStudent = studentCRUDService.updateStudent(studentToUpdate);
+        var actualUpdatedStudent = studentCRUDService.updateStudent(STUDENT_ID, studentToUpdate);
 
         assertThat(actualUpdatedStudent).isEqualTo(updatedStudent);
 

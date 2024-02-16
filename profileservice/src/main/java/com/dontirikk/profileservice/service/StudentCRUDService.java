@@ -7,31 +7,41 @@ import com.dontirikk.profileservice.web.dto.StudentDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
 public class StudentCRUDService {
+    private final Supplier<UUID> uuidSupplier;
     private final StudentRepository studentRepository;
 
     public List<Student> listStudents() {
-        //TODO
-        return Collections.emptyList();
+        return studentRepository.findAll();
     }
 
     public Student createStudent(StudentCreationRequest studentCreationRequest) {
-        //TODO
-        return null;
+        var student = new Student(
+                uuidSupplier.get(),
+                studentCreationRequest.name(),
+                studentCreationRequest.email()
+        );
+
+        return studentRepository.save(student);
     }
 
-    public Student updateStudent(StudentDTO studentDTO) {
-        //TODO
-        return null;
+    public Student updateStudent(UUID id, StudentDTO studentDTO) {
+        var student = studentRepository.findById(id)
+                .orElseThrow(IllegalArgumentException::new);//TODO: proper exception
+
+        student.setEmail(studentDTO.email());
+        student.setName(studentDTO.name());
+
+        return studentRepository.save(student);
     }
 
     public void deleteStudent(UUID id) {
-        //TODO
+        studentRepository.deleteById(id);
     }
 }
