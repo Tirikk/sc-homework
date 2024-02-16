@@ -17,6 +17,7 @@ import java.util.function.Supplier;
 
 import static com.dontirikk.profileservice.TestUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -53,13 +54,26 @@ class StudentCRUDServiceTest {
         var createdStudent = new Student(STUDENT_ID, STUDENT_NAME, STUDENT_EMAIL);
 
         when(uuidSupplier.get()).thenReturn(STUDENT_ID);
+        when(studentRepository.existsByEmail(STUDENT_EMAIL)).thenReturn(false);
         when(studentRepository.save(createdStudent)).thenReturn(createdStudent);
 
         var savedStudent = studentCRUDService.createStudent(studentCreationRequest);
 
         assertThat(savedStudent).isEqualTo(createdStudent);
 
+        verify(studentRepository).existsByEmail(STUDENT_EMAIL);
         verify(studentRepository).save(createdStudent);
+        verifyNoMoreInteractions(studentRepository);
+    }
+
+    @Test
+    void shouldThrowExceptionOnConflict() {
+        var studentCreationRequest = new StudentCreationRequest(STUDENT_NAME, STUDENT_EMAIL);
+
+        when(studentRepository.existsByEmail(STUDENT_EMAIL)).thenReturn(true);
+
+        assertThrows(IllegalArgumentException.class, () -> studentCRUDService.createStudent(studentCreationRequest));
+
         verifyNoMoreInteractions(studentRepository);
     }
 
@@ -78,6 +92,17 @@ class StudentCRUDServiceTest {
 
         verify(studentRepository).findById(STUDENT_ID);
         verify(studentRepository).save(updatedStudent);
+        verifyNoMoreInteractions(studentRepository);
+    }
+
+    @Test
+    void shouldThrowExceptionIfStudentNotFound() {
+        var studentToUpdate = new StudentDTO(STUDENT_ID, STUDENT_NAME, STUDENT_UPDATED_EMAIL);
+
+        when(studentRepository.findById(STUDENT_ID)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> studentCRUDService.updateStudent(STUDENT_ID, studentToUpdate));
+
         verifyNoMoreInteractions(studentRepository);
     }
 

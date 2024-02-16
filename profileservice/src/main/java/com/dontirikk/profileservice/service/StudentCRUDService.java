@@ -22,6 +22,10 @@ public class StudentCRUDService {
     }
 
     public Student createStudent(StudentCreationRequest studentCreationRequest) {
+        if (studentRepository.existsByEmail(studentCreationRequest.email())) {
+            throw new IllegalArgumentException(); //TODO: proper exception
+        }
+
         var student = new Student(
                 uuidSupplier.get(),
                 studentCreationRequest.name(),
