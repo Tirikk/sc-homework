@@ -2,3 +2,7 @@ databaseChangeLog:
   - include:
       relativeToChangelogFile: true
       file: ./001_create_student_table.sql
+
+  - include:
+      relativeToChangelogFile: true
+      file: ./002_make_email_property_unique.sql
