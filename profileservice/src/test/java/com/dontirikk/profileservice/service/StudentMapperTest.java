@@ -19,14 +19,4 @@ class StudentMapperTest {
 
         assertThat(actualDto).isEqualTo(expectedDto);
     }
-
-    @Test
-    void shouldMapToEntity() {
-        var studentDto = new StudentDTO(STUDENT_ID, STUDENT_NAME, STUDENT_EMAIL);
-        var expectedEntity = new Student(STUDENT_ID, STUDENT_NAME, STUDENT_EMAIL);
-
-        var actualEntity = studentMapper.mapToEntity(studentDto);
-
-        assertThat(actualEntity).isEqualTo(expectedEntity);
-    }
 }
