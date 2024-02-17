@@ -1,5 +1,7 @@
 package com.dontirikk.profileservice.service;
 
+import com.dontirikk.profileservice.exception.ResourceAlreadyExistsException;
+import com.dontirikk.profileservice.exception.ResourceNotFoundException;
 import com.dontirikk.profileservice.persistence.entity.Student;
 import com.dontirikk.profileservice.persistence.repository.StudentRepository;
 import com.dontirikk.profileservice.web.dto.StudentCreationRequest;
@@ -23,7 +25,7 @@ public class StudentCRUDService {
 
     public Student createStudent(StudentCreationRequest studentCreationRequest) {
         if (studentRepository.existsByEmail(studentCreationRequest.email())) {
-            throw new IllegalArgumentException(); //TODO: proper exception
+            throw new ResourceAlreadyExistsException("A student resource with email %s already exists".formatted(studentCreationRequest.email()));
         }
 
         var student = new Student(
@@ -37,7 +39,7 @@ public class StudentCRUDService {
 
     public Student updateStudent(UUID id, StudentDTO studentDTO) {
         var student = studentRepository.findById(id)
-                .orElseThrow(IllegalArgumentException::new);//TODO: proper exception
+                .orElseThrow(() -> new ResourceNotFoundException("Student with id %s could not be found.".formatted(id)));
 
         student.setEmail(studentDTO.email());
         student.setName(studentDTO.name());

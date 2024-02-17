@@ -1,5 +1,7 @@
 package com.dontirikk.profileservice.service;
 
+import com.dontirikk.profileservice.exception.ResourceAlreadyExistsException;
+import com.dontirikk.profileservice.exception.ResourceNotFoundException;
 import com.dontirikk.profileservice.persistence.entity.Student;
 import com.dontirikk.profileservice.persistence.repository.StudentRepository;
 import com.dontirikk.profileservice.web.dto.StudentCreationRequest;
@@ -72,7 +74,7 @@ class StudentCRUDServiceTest {
 
         when(studentRepository.existsByEmail(STUDENT_EMAIL)).thenReturn(true);
 
-        assertThrows(IllegalArgumentException.class, () -> studentCRUDService.createStudent(studentCreationRequest));
+        assertThrows(ResourceAlreadyExistsException.class, () -> studentCRUDService.createStudent(studentCreationRequest));
 
         verifyNoMoreInteractions(studentRepository);
     }
@@ -101,7 +103,7 @@ class StudentCRUDServiceTest {
 
         when(studentRepository.findById(STUDENT_ID)).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () -> studentCRUDService.updateStudent(STUDENT_ID, studentToUpdate));
+        assertThrows(ResourceNotFoundException.class, () -> studentCRUDService.updateStudent(STUDENT_ID, studentToUpdate));
 
         verifyNoMoreInteractions(studentRepository);
     }
