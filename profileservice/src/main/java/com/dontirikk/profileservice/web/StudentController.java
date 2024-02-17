@@ -4,6 +4,7 @@ import com.dontirikk.profileservice.service.StudentCRUDService;
 import com.dontirikk.profileservice.service.StudentMapper;
 import com.dontirikk.profileservice.web.dto.StudentCreationRequest;
 import com.dontirikk.profileservice.web.dto.StudentDTO;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -29,13 +30,13 @@ public class StudentController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public StudentDTO createStudent(@RequestBody StudentCreationRequest request) {
+    public StudentDTO createStudent(@RequestBody @Valid StudentCreationRequest request) {
         return studentMapper.mapToDTO(studentService.createStudent(request));
     }
 
     @PutMapping("/{studentId}")
     @ResponseStatus(HttpStatus.OK)
-    public StudentDTO updateStudent(@PathVariable UUID studentId, @RequestBody StudentDTO student) {
+    public StudentDTO updateStudent(@PathVariable UUID studentId, @RequestBody @Valid StudentDTO student) {
         return studentMapper.mapToDTO(studentService.updateStudent(studentId, student));
     }
 
