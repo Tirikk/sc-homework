@@ -81,11 +81,12 @@ class StudentCRUDServiceTest {
 
     @Test
     void shouldUpdateStudent() {
-        var studentToUpdate = new StudentDTO(STUDENT_ID, STUDENT_NAME, STUDENT_UPDATED_EMAIL);
+        var studentToUpdate = new StudentDTO(STUDENT_ID, STUDENT_NAME, STUDENT_SECOND_EMAIL);
         var existingStudent = new Student(STUDENT_ID, STUDENT_NAME, STUDENT_EMAIL);
-        var updatedStudent = new Student(STUDENT_ID, STUDENT_NAME, STUDENT_UPDATED_EMAIL);
+        var updatedStudent = new Student(STUDENT_ID, STUDENT_NAME, STUDENT_SECOND_EMAIL);
 
         when(studentRepository.findById(STUDENT_ID)).thenReturn(Optional.of(existingStudent));
+        when(studentRepository.existsByEmail(STUDENT_SECOND_EMAIL)).thenReturn(false);
         when(studentRepository.save(updatedStudent)).thenReturn(updatedStudent);
 
         var actualUpdatedStudent = studentCRUDService.updateStudent(STUDENT_ID, studentToUpdate);
@@ -99,11 +100,24 @@ class StudentCRUDServiceTest {
 
     @Test
     void shouldThrowExceptionIfStudentNotFound() {
-        var studentToUpdate = new StudentDTO(STUDENT_ID, STUDENT_NAME, STUDENT_UPDATED_EMAIL);
+        var studentToUpdate = new StudentDTO(STUDENT_ID, STUDENT_NAME, STUDENT_SECOND_EMAIL);
 
         when(studentRepository.findById(STUDENT_ID)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> studentCRUDService.updateStudent(STUDENT_ID, studentToUpdate));
+
+        verifyNoMoreInteractions(studentRepository);
+    }
+
+    @Test
+    void shouldThrowExceptionOnUpdateWithExistingEmail() {
+        var studentToUpdate = new StudentDTO(STUDENT_ID, STUDENT_NAME, STUDENT_SECOND_EMAIL);
+        var existingStudent = new Student(STUDENT_ID, STUDENT_NAME, STUDENT_EMAIL);
+
+        when(studentRepository.findById(STUDENT_ID)).thenReturn(Optional.of(existingStudent));
+        when(studentRepository.existsByEmail(STUDENT_SECOND_EMAIL)).thenReturn(true);
+
+        assertThrows(ResourceAlreadyExistsException.class, () -> studentCRUDService.updateStudent(STUDENT_ID, studentToUpdate));
 
         verifyNoMoreInteractions(studentRepository);
     }

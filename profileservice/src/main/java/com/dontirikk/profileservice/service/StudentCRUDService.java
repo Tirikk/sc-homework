@@ -41,6 +41,10 @@ public class StudentCRUDService {
         var student = studentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Student with id %s could not be found.".formatted(id)));
 
+        if (studentRepository.existsByEmail(studentDTO.email()) && !student.getEmail().equals(studentDTO.email())) {
+            throw new ResourceAlreadyExistsException("A student resource with email %s already exists".formatted(studentDTO.email()));
+        }
+
         student.setEmail(studentDTO.email());
         student.setName(studentDTO.name());
 

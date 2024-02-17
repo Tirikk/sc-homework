@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static com.dontirikk.profileservice.TestUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -40,15 +41,7 @@ public class StudentControllerIntegrationTests {
     @Test
     void shouldCreateListAndDeleteStudent() throws Exception {
         var studentRequest = new StudentCreationRequest(STUDENT_NAME, STUDENT_EMAIL);
-
-        var creationResult = mockMvc.perform(post(STUDENT_RESOURCE_URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(studentRequest)))
-                .andExpect(status().isCreated())
-                .andReturn();
-
-        var responseString = creationResult.getResponse().getContentAsString();
-        var createdStudent = (StudentDTO) objectMapper.readerFor(StudentDTO.class).readValue(responseString);
+        var createdStudent = createStudent(studentRequest);
 
         assertThat(createdStudent.name()).isEqualTo(STUDENT_NAME);
         assertThat(createdStudent.email()).isEqualTo(STUDENT_EMAIL);
@@ -74,17 +67,9 @@ public class StudentControllerIntegrationTests {
     @Test
     void shouldCreateThenUpdateStudent() throws Exception {
         var studentRequest = new StudentCreationRequest(STUDENT_NAME, STUDENT_EMAIL);
+        var createdStudent = createStudent(studentRequest);
 
-        var creationResult = mockMvc.perform(post(STUDENT_RESOURCE_URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(studentRequest)))
-                .andExpect(status().isCreated())
-                .andReturn();
-
-        var responseString = creationResult.getResponse().getContentAsString();
-        var createdStudent = (StudentDTO) objectMapper.readerFor(StudentDTO.class).readValue(responseString);
-
-        var updateRequest = new StudentDTO(createdStudent.id(), STUDENT_NAME, STUDENT_UPDATED_EMAIL);
+        var updateRequest = new StudentDTO(createdStudent.id(), STUDENT_NAME, STUDENT_SECOND_EMAIL);
 
         mockMvc.perform(put(STUDENT_RESOURCE_URL + "/" + createdStudent.id())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -94,6 +79,91 @@ public class StudentControllerIntegrationTests {
         mockMvc.perform(get(STUDENT_RESOURCE_URL))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$[0].email").value(STUDENT_UPDATED_EMAIL));
+                .andExpect(jsonPath("$[0].email").value(STUDENT_SECOND_EMAIL));
+    }
+
+    @Test
+    void shouldFailCreationOnEmailConflict() throws Exception {
+        var studentRequest = new StudentCreationRequest(STUDENT_NAME, STUDENT_EMAIL);
+        createStudent(studentRequest);
+
+        mockMvc.perform(post(STUDENT_RESOURCE_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(studentRequest)))
+                .andExpect(status().isConflict());
+
+        mockMvc.perform(get(STUDENT_RESOURCE_URL))
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$", hasSize(1)));
+    }
+
+    @Test
+    void shouldFailCreationOnValidationError() throws Exception {
+        var studentRequest = new StudentCreationRequest("", "foobar");
+
+        mockMvc.perform(post(STUDENT_RESOURCE_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(studentRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorMessage", containsString("name")))
+                .andExpect(jsonPath("$.errorMessage", containsString("email")));
+    }
+
+    @Test
+    void shouldFailUpdateOnEmailConflict() throws Exception {
+        var studentRequest = new StudentCreationRequest(STUDENT_NAME, STUDENT_EMAIL);
+        createStudent(studentRequest);
+
+        var secondStudentRequest = new StudentCreationRequest(STUDENT_NAME, STUDENT_SECOND_EMAIL);
+        var secondStudent = createStudent(secondStudentRequest);
+
+        var updateRequest = new StudentDTO(secondStudent.id(), STUDENT_NAME, STUDENT_EMAIL);
+
+        mockMvc.perform(put(STUDENT_RESOURCE_URL + "/" + secondStudent.id())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void shouldFailUpdateOnValidationError() throws Exception {
+        var updateRequest = new StudentDTO(null, "", "foobar");
+
+        mockMvc.perform(put(STUDENT_RESOURCE_URL + "/" + STUDENT_ID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorMessage", containsString("id")))
+                .andExpect(jsonPath("$.errorMessage", containsString("name")))
+                .andExpect(jsonPath("$.errorMessage", containsString("email")));
+    }
+
+    @Test
+    void updateShouldBeIdempotent() throws Exception {
+        var studentRequest = new StudentCreationRequest(STUDENT_NAME, STUDENT_EMAIL);
+        var createdStudent = createStudent(studentRequest);
+
+        var updateRequest = new StudentDTO(createdStudent.id(), STUDENT_NAME, STUDENT_SECOND_EMAIL);
+
+        mockMvc.perform(put(STUDENT_RESOURCE_URL + "/" + createdStudent.id())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(put(STUDENT_RESOURCE_URL + "/" + createdStudent.id())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isOk());
+    }
+
+    private StudentDTO createStudent(StudentCreationRequest studentRequest) throws Exception {
+        var creationResult = mockMvc.perform(post(STUDENT_RESOURCE_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(studentRequest)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        var responseString = creationResult.getResponse().getContentAsString();
+        return objectMapper.readerFor(StudentDTO.class).readValue(responseString);
     }
 }
