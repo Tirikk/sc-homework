@@ -4,20 +4,25 @@ import com.dontirikk.profileservice.exception.ResourceAlreadyExistsException;
 import com.dontirikk.profileservice.exception.ResourceNotFoundException;
 import com.dontirikk.profileservice.persistence.entity.Student;
 import com.dontirikk.profileservice.persistence.repository.StudentRepository;
+import com.dontirikk.profileservice.web.client.AddressClient;
+import com.dontirikk.profileservice.web.dto.Address;
 import com.dontirikk.profileservice.web.dto.StudentCreationRequest;
 import com.dontirikk.profileservice.web.dto.StudentDTO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class StudentCRUDService {
     private final Supplier<UUID> uuidSupplier;
     private final StudentRepository studentRepository;
+    private final AddressClient addressClient;
 
     public List<Student> listStudents() {
         return studentRepository.findAll();
@@ -33,6 +38,10 @@ public class StudentCRUDService {
                 studentCreationRequest.name(),
                 studentCreationRequest.email()
         );
+
+        log.info("Fetching address for student...");
+        var address = addressClient.getAddress();
+        log.info("Successfully fetched address for client: {}", address);
 
         return studentRepository.save(student);
     }
