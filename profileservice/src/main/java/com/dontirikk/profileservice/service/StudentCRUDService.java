@@ -5,7 +5,6 @@ import com.dontirikk.profileservice.exception.ResourceNotFoundException;
 import com.dontirikk.profileservice.persistence.entity.Student;
 import com.dontirikk.profileservice.persistence.repository.StudentRepository;
 import com.dontirikk.profileservice.web.client.AddressClient;
-import com.dontirikk.profileservice.web.dto.Address;
 import com.dontirikk.profileservice.web.dto.StudentCreationRequest;
 import com.dontirikk.profileservice.web.dto.StudentDTO;
 import lombok.RequiredArgsConstructor;

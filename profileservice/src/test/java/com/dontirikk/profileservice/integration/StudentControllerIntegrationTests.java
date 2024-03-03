@@ -2,7 +2,7 @@ package com.dontirikk.profileservice.integration;
 
 import com.dontirikk.profileservice.persistence.repository.StudentRepository;
 import com.dontirikk.profileservice.web.client.AddressClient;
-import com.dontirikk.profileservice.web.dto.Address;
+import com.dontirikk.profileservice.web.dto.AddressDTO;
 import com.dontirikk.profileservice.web.dto.StudentCreationRequest;
 import com.dontirikk.profileservice.web.dto.StudentDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,7 +45,7 @@ public class StudentControllerIntegrationTests {
 
     @BeforeEach
     public void setUp() {
-        when(addressClient.getAddress()).thenReturn(new Address(UUID.randomUUID(), STUDENT_ADDRESS));
+        when(addressClient.getAddress()).thenReturn(new AddressDTO(UUID.randomUUID(), STUDENT_ADDRESS));
     }
 
     @AfterEach

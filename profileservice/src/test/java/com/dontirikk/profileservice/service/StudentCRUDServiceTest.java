@@ -5,7 +5,7 @@ import com.dontirikk.profileservice.exception.ResourceNotFoundException;
 import com.dontirikk.profileservice.persistence.entity.Student;
 import com.dontirikk.profileservice.persistence.repository.StudentRepository;
 import com.dontirikk.profileservice.web.client.AddressClient;
-import com.dontirikk.profileservice.web.dto.Address;
+import com.dontirikk.profileservice.web.dto.AddressDTO;
 import com.dontirikk.profileservice.web.dto.StudentCreationRequest;
 import com.dontirikk.profileservice.web.dto.StudentDTO;
 import org.junit.jupiter.api.Test;
@@ -62,7 +62,7 @@ class StudentCRUDServiceTest {
 
         when(uuidSupplier.get()).thenReturn(STUDENT_ID);
         when(studentRepository.existsByEmail(STUDENT_EMAIL)).thenReturn(false);
-        when(addressClient.getAddress()).thenReturn(new Address(UUID.randomUUID(), STUDENT_ADDRESS));
+        when(addressClient.getAddress()).thenReturn(new AddressDTO(UUID.randomUUID(), STUDENT_ADDRESS));
         when(studentRepository.save(createdStudent)).thenReturn(createdStudent);
 
         var savedStudent = studentCRUDService.createStudent(studentCreationRequest);
